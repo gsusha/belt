@@ -8,7 +8,7 @@ class Styles {
         scaffoldBackgroundColor: isDark ? bgDark : bgLight,
         iconTheme: const IconThemeData(color: greyLight),
         textTheme: GoogleFonts.robotoTextTheme().apply(
-          displayColor: textDark,
+          displayColor: isDark ? textLight : textDark,
         ),
         appBarTheme: AppBarTheme(
           color: Colors.transparent,
@@ -52,6 +52,15 @@ class Styles {
   static const textLight = Color(0xFFD9D9D9);
   static const textDark = Color(0xFF191B22);
 
+  static const greyExtraLight = Color(0xFFF5F5F5);
   static const greyLight = Color(0xFF8D8E90);
   static const greyDark = Color(0xFF4A494E);
+
+  static const defaultPadding = EdgeInsets.all(30);
+
+  static const titleStyle = TextStyle(
+    fontWeight: FontWeight.w600,
+    fontSize: 20,
+    color: textLight,
+  );
 }
