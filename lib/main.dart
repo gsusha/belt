@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import 'injection.dart';
 import 'presentation/pages/auth/auth_page.dart';
+import 'presentation/pages/home/home_page.dart';
 import 'presentation/pages/home/bloc/home_bloc.dart';
 import 'styles.dart';
 
@@ -26,7 +27,8 @@ class MyApp extends StatelessWidget {
       theme: Styles.theme(themeMode.darkMode),
       home: BlocProvider(
         create: (context) => sl<HomeBloc>(),
-        child: const AuthPage(),
+        // child: const AuthPage(),
+        child: const HomePage(),
       ),
     );
   }
