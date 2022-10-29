@@ -8,8 +8,9 @@
 import 'package:get_it/get_it.dart' as _i1;
 import 'package:injectable/injectable.dart' as _i2;
 
-import 'presentation/pages/home/bloc/home_bloc.dart'
-    as _i3; // ignore_for_file: unnecessary_lambdas
+import 'presentation/pages/home/bloc/home_bloc.dart' as _i3;
+import 'presentation/pages/settings/bloc/settings_bloc.dart'
+    as _i4; // ignore_for_file: unnecessary_lambdas
 
 // ignore_for_file: lines_longer_than_80_chars
 /// initializes the registration of provided dependencies inside of [GetIt]
@@ -24,5 +25,6 @@ _i1.GetIt $initGetIt(
     environmentFilter,
   );
   gh.factory<_i3.HomeBloc>(() => _i3.HomeBloc());
+  gh.factory<_i4.SettingsBloc>(() => _i4.SettingsBloc());
   return get;
 }

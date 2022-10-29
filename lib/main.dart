@@ -3,9 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
 import 'injection.dart';
-import 'presentation/pages/auth/auth_page.dart';
-import 'presentation/pages/home/home_page.dart';
 import 'presentation/pages/home/bloc/home_bloc.dart';
+import 'presentation/pages/home/home_page.dart';
 import 'styles.dart';
 
 void main() {

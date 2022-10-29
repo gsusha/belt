@@ -5,9 +5,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../injection.dart';
 import '../../../styles.dart';
 import '../../widgets/add_button.dart';
-import '../auth/auth_page.dart';
+import '../settings/bloc/settings_bloc.dart';
+import '../settings/settings_page.dart';
 import 'bloc/home_bloc.dart';
 import 'photo_edit.dart';
 
@@ -32,7 +34,12 @@ class HomePage extends StatelessWidget {
                 GestureDetector(
                   child: const Icon(Icons.settings_outlined, size: 30),
                   onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => const AuthPage()),
+                    MaterialPageRoute(
+                      builder: (context) => BlocProvider(
+                        create: (_) => sl<SettingsBloc>(),
+                        child: const SettingsPage(),
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -69,9 +76,8 @@ class ImageItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       child: Image.file(File(file.path)),
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => PhotoEdit(file: file))
-      ),
+      onTap: () => Navigator.of(context)
+          .push(MaterialPageRoute(builder: (context) => PhotoEdit(file: file))),
     );
   }
 }
