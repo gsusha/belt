@@ -15,6 +15,12 @@ class AddButton extends StatelessWidget {
     if (image != null) {
       context.read<HomeBloc>().add(AddImage(image: image));
     }
+    final LostDataResponse response = await picker.retrieveLostData();
+    if (!response.isEmpty && response.files != null) {
+      for (final XFile file in response.files!) {
+        context.read<HomeBloc>().add(AddImage(image: file));
+      }
+    }
   }
 
   @override
