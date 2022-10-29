@@ -13,8 +13,9 @@ class Styles {
         appBarTheme: AppBarTheme(
           color: Colors.transparent,
           shadowColor: Colors.transparent,
-          titleTextStyle: TextStyle(color: isDark ? textDark : textLight),
+          titleTextStyle: TextStyle(color: isDark ? textLight : textDark),
           iconTheme: const IconThemeData(color: greyLight),
+          titleSpacing: 0,
         ),
       );
 
@@ -46,8 +47,8 @@ class Styles {
   );
   static const int _redAccentValue = 0xFFFFEBEB;
 
-  static const bgLight = Color(0xFF191B22);
-  static const bgDark = Color(0xFFFFFFFF);
+  static const bgLight = Color(0xFFFFFFFF);
+  static const bgDark = Color(0xFF191B22);
 
   static const textLight = Color(0xFFD9D9D9);
   static const textDark = Color(0xFF191B22);
@@ -60,7 +61,6 @@ class Styles {
 
   static const titleStyle = TextStyle(
     fontWeight: FontWeight.w600,
-    fontSize: 20,
-    color: textLight,
+    fontSize: 18,
   );
 }

@@ -9,11 +9,12 @@ import '../../../styles.dart';
 import '../../widgets/add_button.dart';
 import '../auth/auth_page.dart';
 import 'bloc/home_bloc.dart';
+import 'photo_edit.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
-  Widget imageMapper(XFile file) => Image.file(File(file.path));
+  Widget imageMapper(XFile file) => ImageItem(file: file);
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +56,22 @@ class HomePage extends StatelessWidget {
         ),
       ),
       floatingActionButton: AddButton(),
+    );
+  }
+}
+
+class ImageItem extends StatelessWidget {
+  final XFile file;
+
+  const ImageItem({super.key, required this.file});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      child: Image.file(File(file.path)),
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => PhotoEdit(file: file))
+      ),
     );
   }
 }
