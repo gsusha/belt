@@ -1,33 +1,60 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:image_picker/image_picker.dart';
+
+import '../../../styles.dart';
+import '../../widgets/add_button.dart';
+import '../auth/auth_page.dart';
+import 'bloc/home_bloc.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
+  Widget imageMapper(XFile file) => Image.file(File(file.path));
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: StaggeredGrid.count(
-          crossAxisCount: 3,
-          mainAxisSpacing: 4,
-          crossAxisSpacing: 4,
-          children: [
-            ClipRect(
-              child: Image.network('https://source.unsplash.com/random/1'),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15),
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              title: const Text(
+                'Добавленные изображения',
+                style: Styles.titleStyle,
+              ),
+              actions: [
+                GestureDetector(
+                  child: const Icon(Icons.settings_outlined, size: 30),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => const AuthPage()),
+                  ),
+                ),
+              ],
             ),
-            ClipRect(
-              child: Image.network('https://source.unsplash.com/random/2'),
-            ),
-            ClipRect(
-              child: Image.network('https://source.unsplash.com/random/4'),
-            ),
-            ClipRect(
-              child: Image.network('https://source.unsplash.com/random/5'),
+            SliverToBoxAdapter(
+              child: BlocBuilder<HomeBloc, HomeState>(
+                builder: (context, state) {
+                  if (state is HomeSuccess) {
+                    return StaggeredGrid.count(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 4,
+                      crossAxisSpacing: 4,
+                      children: state.imageList.map(imageMapper).toList(),
+                    );
+                  }
+                  return const Center(child: CircularProgressIndicator());
+                },
+              ),
             ),
           ],
         ),
       ),
+      floatingActionButton: AddButton(),
     );
   }
 }

@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
       title: 'Belt',
       theme: Styles.theme(themeMode.darkMode),
       home: BlocProvider(
-        create: (context) => sl<HomeBloc>(),
+        create: (context) => sl<HomeBloc>()..add(HomeInit()),
         // child: const AuthPage(),
         child: const HomePage(),
       ),
