@@ -21,7 +21,8 @@ class BaseSlider extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(color: Styles.textLight.withOpacity(0.5))),
+          Text(label,
+              style: TextStyle(color: Styles.textLight.withOpacity(0.5))),
           SizedBox(
             height: 30,
             child: Slider(
