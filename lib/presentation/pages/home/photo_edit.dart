@@ -8,6 +8,7 @@ import 'package:image_editor/image_editor.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../styles.dart';
+import '../../widgets/base_slider.dart';
 
 class PhotoEdit extends StatefulWidget {
   final XFile file;
@@ -20,6 +21,12 @@ class PhotoEdit extends StatefulWidget {
 
 class _PhotoEditState extends State<PhotoEdit> {
   final GlobalKey<ExtendedImageEditorState> editorKey = GlobalKey();
+
+  int sliderIndex = 0;
+
+  double saturation = 1;
+  double brightness = 1;
+  double contrast = 1;
 
   @override
   Widget build(BuildContext context) {
@@ -47,77 +54,57 @@ class _PhotoEditState extends State<PhotoEdit> {
           cacheRawData: true,
         ),
       ),
-      // body: Image.file(File(widget.file.path)),
+      bottomSheet: Container(
+        color: Styles.bgDark,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              BaseSlider(
+                label: 'Насыщенность',
+                value: saturation,
+                onChanged: (v) => setState(() => saturation = v),
+              ),
+              BaseSlider(
+                label: 'Яркость',
+                value: brightness,
+                onChanged: (v) => setState(() => brightness = v),
+              ),
+              BaseSlider(
+                label: 'Контрасность',
+                value: contrast,
+                onChanged: (v) => setState(() => contrast = v),
+              ),
+            ],
+          ),
+        ),
+      ),
       bottomNavigationBar: Container(
         color: Styles.bgDark,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                IconButton(
-                  onPressed: crop,
-                  icon: const Icon(Icons.crop),
-                ),
-                IconButton(
-                  onPressed: flip,
-                  icon: const Icon(Icons.flip),
-                ),
-                IconButton(
-                  onPressed: () => rotate(false),
-                  icon: const Icon(Icons.rotate_right),
-                ),
-                IconButton(
-                  onPressed: () => rotate(true),
-                  icon: const Icon(Icons.rotate_left),
-                ),
-              ],
+            IconButton(
+              onPressed: crop,
+              icon: const Icon(Icons.crop),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                IconButton(
-                  onPressed: _buildCon,
-                  icon: const Icon(Icons.brightness_6_outlined),
-                ),
-                IconButton(
-                  onPressed: _buildBrightness,
-                  icon: const Icon(Icons.sunny),
-                ),
-                IconButton(
-                  onPressed: _buildSat,
-                  icon: const Icon(Icons.brightness_4),
-                ),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.close),
-                ),
-              ],
+            IconButton(
+              onPressed: flip,
+              icon: const Icon(Icons.flip),
             ),
-            SliderTheme(
-              data: const SliderThemeData(
-                showValueIndicator: ShowValueIndicator.always,
-              ),
-              child: switchSlider(1),
+            IconButton(
+              onPressed: () => rotate(false),
+              icon: const Icon(Icons.rotate_right),
+            ),
+            IconButton(
+              onPressed: () => rotate(true),
+              icon: const Icon(Icons.rotate_left),
             ),
           ],
         ),
       ),
     );
-  }
-
-  Widget switchSlider(int type) {
-    switch (type) {
-      case 1:
-        return _buildSat();
-      case 2:
-        return _buildBrightness();
-      case 3:
-        return _buildCon();
-      default:
-        return const SizedBox();
-    }
   }
 
   Future<void> crop([bool test = false]) async {
@@ -136,12 +123,7 @@ class _PhotoEditState extends State<PhotoEdit> {
     final bool flipHorizontal = action.flipY;
     final bool flipVertical = action.flipX;
     // final img = await getImageFromEditorKey(editorKey);
-    final Uint8List? img = state.rawImageData;
-
-    if (img == null) {
-      print('The img is null.');
-      return;
-    }
+    final Uint8List img = state.rawImageData;
 
     final ImageEditorOption option = ImageEditorOption();
 
@@ -152,23 +134,20 @@ class _PhotoEditState extends State<PhotoEdit> {
       option.addOption(RotateOption(radian.toInt()));
     }
 
-    option.addOption(ColorOption.saturation(sat));
-    option.addOption(ColorOption.brightness(bright));
-    option.addOption(ColorOption.contrast(con));
+    option.addOption(ColorOption.saturation(saturation));
+    option.addOption(ColorOption.brightness(brightness));
+    option.addOption(ColorOption.contrast(contrast));
 
     option.outputFormat = const OutputFormat.png(88);
 
     print(const JsonEncoder.withIndent('  ').convert(option.toJson()));
 
-    final DateTime start = DateTime.now();
     final Uint8List? result = await ImageEditor.editImage(
       image: img,
       imageEditorOption: option,
     );
 
     print('result.length = ${result?.length}');
-
-    final Duration diff = DateTime.now().difference(start);
 
     if (result == null) return;
 
@@ -200,52 +179,6 @@ class _PhotoEditState extends State<PhotoEdit> {
           ),
         ),
       ),
-    );
-  }
-
-  double sat = 1;
-  double bright = 1;
-  double con = 1;
-
-  Widget _buildSat() {
-    return Slider(
-      label: 'Насыщенность : ${sat.toStringAsFixed(2)}',
-      onChanged: (double value) {
-        setState(() {
-          sat = value;
-        });
-      },
-      value: sat,
-      min: 0,
-      max: 2,
-    );
-  }
-
-  Widget _buildBrightness() {
-    return Slider(
-      label: 'Яркость : ${bright.toStringAsFixed(2)}',
-      onChanged: (double value) {
-        setState(() {
-          bright = value;
-        });
-      },
-      value: bright,
-      min: 0,
-      max: 2,
-    );
-  }
-
-  Widget _buildCon() {
-    return Slider(
-      label: 'Контрастность : ${con.toStringAsFixed(2)}',
-      onChanged: (double value) {
-        setState(() {
-          con = value;
-        });
-      },
-      value: con,
-      min: 0,
-      max: 4,
     );
   }
 }

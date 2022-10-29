@@ -17,6 +17,10 @@ class Styles {
           iconTheme: const IconThemeData(color: greyLight),
           titleSpacing: 0,
         ),
+        sliderTheme: SliderThemeData(
+          showValueIndicator: ShowValueIndicator.always,
+          overlayShape: SliderComponentShape.noOverlay,
+        ),
       );
 
   static const MaterialColor red = MaterialColor(
