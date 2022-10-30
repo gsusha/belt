@@ -5,6 +5,7 @@ import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:image_editor/image_editor.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../../styles.dart';
 import '../../widgets/base_slider.dart';
@@ -29,103 +30,19 @@ class _PhotoEditState extends State<PhotoEdit> {
   double brightness = 1;
   double contrast = 1;
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Редактировать изображение',
-          style: Styles.titleStyle,
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.check),
-            onPressed: () async => await crop(),
-          ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          ExtendedImage(
-            extendedImageEditorKey: editorKey,
-            mode: ExtendedImageMode.editor,
-            fit: BoxFit.contain,
-            image: ExtendedFileImageProvider(
-              File(widget.file.path),
-              cacheRawData: true,
-            ),
-          ),
-          if (result != null) Positioned.fill(child: Image.memory(result!))
-        ],
-      ),
-      bottomNavigationBar: Container(
-        color: Styles.bgDark,
-        padding: const EdgeInsets.only(top: 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            BaseSlider(
-              label: 'Насыщенность',
-              value: saturation,
-              onChanged: (v) => setState(() {
-                saturation = v;
-                crop();
-              }),
-            ),
-            BaseSlider(
-              label: 'Яркость',
-              value: brightness,
-              onChanged: (v) => setState(() {
-                brightness = v;
-                crop();
-              }),
-            ),
-            BaseSlider(
-              label: 'Контрасность',
-              value: contrast,
-              onChanged: (v) => setState(() {
-                contrast = v;
-                crop();
-              }),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                IconButton(
-                  onPressed: crop,
-                  icon: const Icon(Icons.crop),
-                ),
-                IconButton(
-                  onPressed: flip,
-                  icon: const Icon(Icons.flip),
-                ),
-                IconButton(
-                  onPressed: () => rotate(false),
-                  icon: const Icon(Icons.rotate_right),
-                ),
-                IconButton(
-                  onPressed: () => rotate(true),
-                  icon: const Icon(Icons.rotate_left),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  bool isEdit = true;
 
   Future<void> crop() async {
     final ExtendedImageEditorState? state = editorKey.currentState;
-    print(state);
     if (state == null) {
       return;
     }
     final Rect? rect = state.getCropRect();
+
     if (rect == null) {
-      print('The crop rect is null.');
       return;
     }
+
     final EditActionDetails action = state.editAction!;
     final double radian = action.rotateAngle;
 
@@ -159,6 +76,132 @@ class _PhotoEditState extends State<PhotoEdit> {
     });
   }
 
+  Future<void> save() async {
+    crop();
+    if (result != null) {
+      Directory appDocDirectory = await getApplicationDocumentsDirectory();
+
+      Directory('${appDocDirectory.path}/saved')
+          .create(recursive: true)
+          .then((Directory directory) {
+            print(directory);
+        File('${directory.path}/my_image.png').writeAsBytes(result!);
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Редактировать',
+          style: Styles.titleStyle,
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(isEdit ? Icons.brightness_6_outlined : Icons.crop),
+            onPressed: () => setState(() {
+              isEdit = !isEdit;
+              result = null;
+            }),
+          ),
+          IconButton(
+            icon: const Icon(Icons.check),
+            onPressed: save,
+          ),
+        ],
+      ),
+      body: Center(
+        child: Stack(
+          children: [
+            ExtendedImage(
+              extendedImageEditorKey: editorKey,
+              mode: ExtendedImageMode.editor,
+              fit: BoxFit.contain,
+              initEditorConfigHandler: (_) => EditorConfig(
+                maxScale: 8.0,
+                cropRectPadding: const EdgeInsets.all(20.0),
+                hitTestSize: 20.0,
+              ),
+              image: ExtendedFileImageProvider(
+                File(widget.file.path),
+                cacheRawData: true,
+              ),
+            ),
+            if (result != null && !isEdit)
+              Positioned.fill(child: Image.memory(result!))
+          ],
+        ),
+      ),
+      bottomNavigationBar: isEdit
+          ? _ImageSettings(editorKey: editorKey)
+          : _ColorSettings(
+              saturation: saturation,
+              brightness: brightness,
+              contrast: contrast,
+              onSaturationChanged: (v) => setState(() {
+                saturation = v;
+                crop();
+              }),
+              onBrightnessChanged: (v) => setState(() => brightness = v),
+              onContrastChanged: (v) => setState(() => contrast = v),
+            ),
+    );
+  }
+}
+
+class _ColorSettings extends StatelessWidget {
+  final double saturation;
+  final ValueChanged<double> onSaturationChanged;
+  final double brightness;
+  final ValueChanged<double> onBrightnessChanged;
+  final double contrast;
+  final ValueChanged<double> onContrastChanged;
+
+  const _ColorSettings({
+    required this.saturation,
+    required this.brightness,
+    required this.contrast,
+    required this.onSaturationChanged,
+    required this.onBrightnessChanged,
+    required this.onContrastChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Styles.bgDark,
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          BaseSlider(
+            label: 'Насыщенность',
+            value: saturation,
+            onChanged: onSaturationChanged,
+          ),
+          BaseSlider(
+            label: 'Яркость',
+            value: brightness,
+            onChanged: onBrightnessChanged,
+          ),
+          BaseSlider(
+            label: 'Контрасность',
+            value: contrast,
+            onChanged: onContrastChanged,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ImageSettings extends StatelessWidget {
+  final GlobalKey<ExtendedImageEditorState> editorKey;
+
+  const _ImageSettings({required this.editorKey});
+
   void flip() {
     editorKey.currentState?.flip();
   }
@@ -167,22 +210,39 @@ class _PhotoEditState extends State<PhotoEdit> {
     editorKey.currentState?.rotate(right: right);
   }
 
-  void showPreviewDialog(Uint8List image) {
-    showDialog<void>(
-      context: context,
-      builder: (BuildContext ctx) => GestureDetector(
-        onTap: () => Navigator.pop(context),
-        child: Container(
-          color: Colors.grey.withOpacity(0.5),
-          child: Center(
-            child: SizedBox.fromSize(
-              size: const Size.square(200),
-              child: Container(
-                child: Image.memory(image),
+  void reset() {
+    editorKey.currentState?.reset();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Styles.bgDark,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              IconButton(
+                onPressed: flip,
+                icon: const Icon(Icons.flip),
               ),
-            ),
+              IconButton(
+                onPressed: () => rotate(false),
+                icon: const Icon(Icons.rotate_right),
+              ),
+              IconButton(
+                onPressed: () => rotate(true),
+                icon: const Icon(Icons.rotate_left),
+              ),
+              IconButton(
+                onPressed: reset,
+                icon: const Icon(Icons.cancel_outlined),
+              ),
+            ],
           ),
-        ),
+        ],
       ),
     );
   }
