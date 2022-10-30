@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -22,6 +21,8 @@ class PhotoEdit extends StatefulWidget {
 class _PhotoEditState extends State<PhotoEdit> {
   final GlobalKey<ExtendedImageEditorState> editorKey = GlobalKey();
 
+  Uint8List? result;
+
   int sliderIndex = 0;
 
   double saturation = 1;
@@ -39,67 +40,74 @@ class _PhotoEditState extends State<PhotoEdit> {
         actions: [
           IconButton(
             icon: const Icon(Icons.check),
-            onPressed: () async {
-              await crop();
-            },
+            onPressed: () async => await crop(),
           ),
         ],
       ),
-      body: ExtendedImage(
-        key: editorKey,
-        mode: ExtendedImageMode.editor,
-        fit: BoxFit.contain,
-        image: ExtendedFileImageProvider(
-          File(widget.file.path),
-          cacheRawData: true,
-        ),
-      ),
-      bottomSheet: Container(
-        color: Styles.bgDark,
-        child: Padding(
-          padding: const EdgeInsets.only(top: 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              BaseSlider(
-                label: 'Насыщенность',
-                value: saturation,
-                onChanged: (v) => setState(() => saturation = v),
-              ),
-              BaseSlider(
-                label: 'Яркость',
-                value: brightness,
-                onChanged: (v) => setState(() => brightness = v),
-              ),
-              BaseSlider(
-                label: 'Контрасность',
-                value: contrast,
-                onChanged: (v) => setState(() => contrast = v),
-              ),
-            ],
+      body: Stack(
+        children: [
+          ExtendedImage(
+            extendedImageEditorKey: editorKey,
+            mode: ExtendedImageMode.editor,
+            fit: BoxFit.contain,
+            image: ExtendedFileImageProvider(
+              File(widget.file.path),
+              cacheRawData: true,
+            ),
           ),
-        ),
+          if (result != null) Positioned.fill(child: Image.memory(result!))
+        ],
       ),
       bottomNavigationBar: Container(
         color: Styles.bgDark,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        padding: const EdgeInsets.only(top: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(
-              onPressed: crop,
-              icon: const Icon(Icons.crop),
+            BaseSlider(
+              label: 'Насыщенность',
+              value: saturation,
+              onChanged: (v) => setState(() {
+                saturation = v;
+                crop();
+              }),
             ),
-            IconButton(
-              onPressed: flip,
-              icon: const Icon(Icons.flip),
+            BaseSlider(
+              label: 'Яркость',
+              value: brightness,
+              onChanged: (v) => setState(() {
+                brightness = v;
+                crop();
+              }),
             ),
-            IconButton(
-              onPressed: () => rotate(false),
-              icon: const Icon(Icons.rotate_right),
+            BaseSlider(
+              label: 'Контрасность',
+              value: contrast,
+              onChanged: (v) => setState(() {
+                contrast = v;
+                crop();
+              }),
             ),
-            IconButton(
-              onPressed: () => rotate(true),
-              icon: const Icon(Icons.rotate_left),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                IconButton(
+                  onPressed: crop,
+                  icon: const Icon(Icons.crop),
+                ),
+                IconButton(
+                  onPressed: flip,
+                  icon: const Icon(Icons.flip),
+                ),
+                IconButton(
+                  onPressed: () => rotate(false),
+                  icon: const Icon(Icons.rotate_right),
+                ),
+                IconButton(
+                  onPressed: () => rotate(true),
+                  icon: const Icon(Icons.rotate_left),
+                ),
+              ],
             ),
           ],
         ),
@@ -107,8 +115,9 @@ class _PhotoEditState extends State<PhotoEdit> {
     );
   }
 
-  Future<void> crop([bool test = false]) async {
+  Future<void> crop() async {
     final ExtendedImageEditorState? state = editorKey.currentState;
+    print(state);
     if (state == null) {
       return;
     }
@@ -122,7 +131,7 @@ class _PhotoEditState extends State<PhotoEdit> {
 
     final bool flipHorizontal = action.flipY;
     final bool flipVertical = action.flipX;
-    // final img = await getImageFromEditorKey(editorKey);
+
     final Uint8List img = state.rawImageData;
 
     final ImageEditorOption option = ImageEditorOption();
@@ -140,18 +149,14 @@ class _PhotoEditState extends State<PhotoEdit> {
 
     option.outputFormat = const OutputFormat.png(88);
 
-    print(const JsonEncoder.withIndent('  ').convert(option.toJson()));
-
-    final Uint8List? result = await ImageEditor.editImage(
+    final newResult = await ImageEditor.editImage(
       image: img,
       imageEditorOption: option,
     );
 
-    print('result.length = ${result?.length}');
-
-    if (result == null) return;
-
-    showPreviewDialog(result);
+    setState(() {
+      result = newResult;
+    });
   }
 
   void flip() {

@@ -15,5 +15,5 @@ class HomeSuccess extends HomeState {
   const HomeSuccess(this.imageList);
 
   @override
-  List<Object> get props => imageList;
+  List<Object> get props => [UniqueKey()];
 }
